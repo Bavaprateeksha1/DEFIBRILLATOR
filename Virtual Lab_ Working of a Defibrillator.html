@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Virtual Lab: Working of a Defibrillator</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f7;--card:#fff;--ink:#13202a;--mute:#566673;--line:#d8e0e6;--acc:#d62839;--ok:#12803f;--warn:#a66a06;--bad:#c0212f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1318;--card:#151d24;--ink:#e7eef3;--mute:#90a2af;--line:#25313b;--acc:#ff4d5e;--ok:#3ddc84;--warn:#f2b84b;--bad:#ff6b77;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1318;--card:#151d24;--ink:#e7eef3;--mute:#90a2af;--line:#25313b;--acc:#ff4d5e;--ok:#3ddc84;--warn:#f2b84b;--bad:#ff6b77;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Space Grotesk",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 48px}
+header{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:end;padding:8px 0 20px;border-bottom:2px solid var(--ink)}
+h1{font-size:clamp(28px,5vw,48px);line-height:1.05;margin:0 0 8px;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0}
+.team{font-size:14px;border-left:4px solid var(--acc);padding-left:14px}
+.team b{display:block;font-size:15px}
+.team span{color:var(--mute);font-family:"JetBrains Mono",monospace;font-size:12.5px}
+h2{font-size:20px;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;margin-top:20px}
+.col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.scopewrap{background:#04110b;border-radius:8px;padding:6px;transition:box-shadow .2s}
+.scopewrap.flash{box-shadow:0 0 0 4px #fff,0 0 40px 10px #fff}
+canvas{display:block;width:100%;height:auto;border-radius:4px}
+.sw{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin:14px 0}
+.sw label{display:flex;gap:10px;align-items:center;font-size:14px;cursor:pointer}
+.sw input{accent-color:var(--acc);width:18px;height:18px}
+.row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:10px 0}
+.row>span{color:var(--mute);font-size:14px;min-width:92px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;color:var(--ink);border:0;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--ink);color:var(--bg);font-weight:600}
+select,input[type=range]{font:inherit;accent-color:var(--acc)}
+select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px}
+.btns{display:flex;gap:12px;margin-top:14px}
+.btn{flex:1;border:0;border-radius:8px;padding:14px;font:700 16px "Space Grotesk",sans-serif;cursor:pointer;color:#fff}
+.btn.chg{background:#b7791f}.btn.shock{background:var(--acc)}
+.btn:active{transform:scale(.98)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.panel{background:#0b1218;color:#e6f0f5;border-radius:8px;padding:12px 14px;font:500 14px/1.7 "JetBrains Mono",monospace;display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.panel i{font-style:normal;color:#7e95a3}
+#msg{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--bg);border-left:4px solid var(--mute);font-size:14.5px;min-height:46px}
+#msg.ok{border-color:var(--ok)}#msg.w{border-color:var(--warn)}#msg.bad{border-color:var(--bad)}
+ol.steps{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:14.5px}
+ol.steps li{display:flex;gap:10px;align-items:flex-start;color:var(--mute)}
+ol.steps li:before{content:"";flex:none;width:16px;height:16px;margin-top:4px;border:2px solid var(--line);border-radius:50%}
+ol.steps li.d{color:var(--ink)}ol.steps li.d:before{background:var(--ok);border-color:var(--ok)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:620px}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+th{font-size:13px;color:var(--mute)}
+td.ok{color:var(--ok)}td.bad{color:var(--bad)}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+details{border-top:1px solid var(--line);padding:10px 0}
+summary{cursor:pointer;font-weight:600}
+details p,.card li{color:var(--mute);font-size:14.5px}
+.mt{margin-top:18px}
+#man.hit{filter:brightness(1.7)}.pd{cursor:grab}.pd:active{cursor:grabbing}
+@media(max-width:860px){header,.grid{grid-template-columns:1fr}.sw{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body><div class="wrap">
+<header>
+ <div><p class="sub">Ex. No. 1 · 21BMC402J Biomedical Equipments for Clinical Applications</p>
+ <h1>Study the working of a defibrillator</h1>
+ <p class="sub">Aim: to study the working of a defibrillator. Set up the bench, select a rhythm on the ECG simulator, and observe how the defibrillator responds on the oscilloscope. This is a simulation on a training manikin, with no real patient.</p></div>
+ <div class="team"><b>Bava Prateeksha KS</b><span>RA2311013010044</span>
+ <b>Shruthi S K</b><span>RA2311013010008</span>
+ <b>Naseeya Begum</b><span>RA2311013010065</span></div>
+</header>
+
+<div class="grid">
+<div class="col">
+ <section class="card"><h2>Digital storage oscilloscope</h2>
+  <div class="scopewrap" id="sw"><canvas id="scope" width="1000" height="360" aria-label="Oscilloscope showing ECG and sync pulse"></canvas></div>
+  <div class="sw" role="group" aria-label="Connections">
+   <label><input type="checkbox" id="def"> Defibrillator power</label>
+   <label><input type="checkbox" id="sim"> ECG simulator power</label>
+   <label><input type="checkbox" id="ecg"> Simulator output → ECG input</label>
+   <label><input type="checkbox" id="ch1"> ECG output → DSO CH1</label>
+   <label><input type="checkbox" id="ch2"> SYNC output → DSO CH2</label>
+   <label><input type="checkbox" id="pads"> Patient pads → simulator</label>
+  </div>
+ </section>
+
+ <section class="card"><h2>Patient simulator and paddles</h2>
+  <p style="margin-top:0;font-size:14.5px;color:var(--mute)">Lift each paddle out of its holder and drag it onto a dashed target on the manikin’s chest: one at the sternum (upper right) and one at the apex (lower left side). Placing both connects the patient pads.</p>
+  <svg id="man" viewBox="0 0 400 300" style="width:100%;height:auto;touch-action:none" role="img" aria-label="Training manikin with two defibrillator paddles">
+   <circle cx="200" cy="38" r="26" fill="var(--line)"/><rect x="188" y="60" width="24" height="22" fill="var(--line)"/>
+   <path d="M90 100 Q90 80 140 78 L260 78 Q310 80 310 100 L322 230 L78 230 Z" fill="var(--line)" stroke="var(--mute)"/>
+   <circle cx="165" cy="118" r="30" fill="none" stroke="var(--acc)" stroke-dasharray="5 4" stroke-width="2"/>
+   <circle cx="262" cy="198" r="30" fill="none" stroke="var(--acc)" stroke-dasharray="5 4" stroke-width="2"/>
+   <text x="165" y="166" text-anchor="middle" font-size="12" fill="var(--mute)">Sternum</text>
+   <text x="262" y="246" text-anchor="middle" font-size="12" fill="var(--mute)">Apex</text>
+   <rect x="20" y="242" width="84" height="50" rx="8" fill="none" stroke="var(--mute)" stroke-dasharray="3 3"/>
+   <rect x="296" y="242" width="84" height="50" rx="8" fill="none" stroke="var(--mute)" stroke-dasharray="3 3"/>
+   <g class="pd" id="pd0"><rect x="-26" y="-12" width="52" height="24" rx="6" fill="#8a97a1"/><rect x="-6" y="-46" width="12" height="36" rx="5" fill="var(--acc)"/></g>
+   <g class="pd" id="pd1"><rect x="-26" y="-12" width="52" height="24" rx="6" fill="#8a97a1"/><rect x="-6" y="-46" width="12" height="36" rx="5" fill="var(--acc)"/></g>
+  </svg>
+  <div class="row"><button class="ghost" id="pbtn">Place paddles on chest</button><span id="pst" style="min-width:0">Paddles in holder</span></div>
+ </section>
+
+ <section class="card"><h2>Controls</h2>
+  <div class="row"><span>Rhythm</span><div class="seg" data-g="rhythm"><button class="on" data-v="normal">Normal</button><button data-v="afib">A-fib</button><button data-v="vfib">V-fib</button></div>
+   <label>Heart rate <input type="range" id="hr" min="60" max="100" value="72"> <b id="hrv">72</b> bpm</label></div>
+  <div class="row"><span>Mode</span><div class="seg" data-g="mode"><button class="on" data-v="sync">Synch</button><button data-v="manual">Manual</button></div></div>
+  <div class="row"><span>Pulse type</span><select id="wave"><option value="mono">Monophasic</option><option value="bi">Biphasic</option></select></div>
+  <div class="row"><span>Energy</span><input type="range" id="en" min="10" max="360" step="10" value="200"> <b id="env">200 J</b></div>
+  <div class="btns"><button class="btn chg" id="chg">Charge</button><button class="btn shock" id="shock">Discharge shock</button></div>
+  <div id="msg">Start by switching on the defibrillator and the simulator.</div>
+ </section>
+
+ <section class="card"><h2>Observation table</h2>
+  <div class="tw"><table><thead><tr><th>S.No</th><th>Rhythm</th><th>Mode</th><th>Pulse</th><th>Energy (J)</th><th>HR before</th><th>HR after</th><th>Outcome</th></tr></thead><tbody id="rows"><tr><td colspan="8" style="color:var(--mute)">Each shock you deliver is logged here automatically.</td></tr></tbody></table></div>
+  <div class="row"><button class="ghost" id="clr">Clear table</button></div>
+  <p><b>Result:</b> Thus the working of a defibrillator was studied. <span id="cnt" style="color:var(--mute)">(0 observations)</span></p>
+ </section>
+</div>
+
+<div class="col">
+ <section class="card"><h2>Defibrillator display</h2>
+  <div class="panel"><div><i>HR </i><span id="dHR">--</span></div><div><i>MODE </i><span id="dMode">SYNCH</span></div>
+  <div><i>SELECT </i><span id="dEn">200 J</span></div><div><i>STATUS </i><span id="dSt">OFF</span></div></div>
+  <p style="margin:12px 0 6px;font-size:14px;color:var(--mute)">Last discharge pulse</p>
+  <div class="scopewrap"><canvas id="pulse" width="400" height="110" aria-label="Discharge pulse shape"></canvas></div>
+ </section>
+
+ <section class="card"><h2>Procedure checklist</h2><ol class="steps" id="steps"></ol></section>
+
+ <section class="card"><h2>Equipment and theory</h2>
+  <p style="margin-top:0;font-size:14.5px;color:var(--mute)">Defibrillator, ECG simulator, DSO, discharge pads (2).</p>
+  <details><summary>Why defibrillate?</summary><p>In ventricular fibrillation the heart muscle contracts without coordination, so cardiac output stops and brain damage follows within about 5 minutes. A high-energy shock makes all fibres contract at once so the heart’s own pacemaker can take over again.</p></details>
+  <details><summary>How the circuit works</summary><p>A variable autotransformer feeds a high-voltage transformer and rectifier. A change-over switch first charges a capacitor (position 1). Pressing discharge moves the switch to position 2 and the capacitor empties through an inductor and the patient. The inductor shapes the pulse, but its resistance wastes some energy. The chest load is roughly 50–100 Ω.</p></details>
+  <details><summary>Synch and manual modes</summary><p>Synch mode waits for the R-wave of the QRS complex so the shock never lands on the T-wave. Use it for normal rhythm and A-fib. V-fib has no QRS, so it needs manual mode.</p></details>
+  <details><summary>Monophasic vs biphasic</summary><p>Monophasic pulses run 3–12 ms. Biphasic pulses reverse polarity and studies suggest they defibrillate more effectively, so they need less energy.</p></details>
+ </section>
+
+ <section class="card"><h2>More theory</h2>
+  <details><summary>Atrial vs ventricular fibrillation</summary><p>In atrial fibrillation the atria quiver and the ventricles respond irregularly, so the QRS complexes are still present but the rhythm is irregular and the P-wave is lost. The patient usually has a pulse, which is why a synchronised shock (cardioversion) is used. In ventricular fibrillation the ventricles only quiver, there is no pulse and no QRS, so an immediate unsynchronised shock is needed.</p></details>
+  <details><summary>Energy stored in the capacitor</summary><p>The stored energy is E = ½CV². For example, a 32 µF capacitor charged to about 4.7 kV stores roughly 350 J. The energy actually delivered to the patient is lower, because some is lost in the inductor’s resistance and in the electrode and skin interface.</p></details>
+  <details><summary>Why the R-wave is used for synchronisation</summary><p>The T-wave is the vulnerable period of the cardiac cycle. A shock that lands there can push the heart into ventricular fibrillation (the R-on-T effect). By triggering the discharge from the R-wave, the defibrillator places the shock safely away from the T-wave. You can see this on the simulator: a manual shock on a normal rhythm or A-fib may induce V-fib.</p></details>
+  <details><summary>External and internal defibrillation</summary><p>External paddles are placed on the chest wall, so more energy is needed because the current passes through skin, fat, ribs and lung. Internal paddles are held directly on the heart during open-chest surgery and need far less energy. Conductive gel or pads reduce the contact resistance and prevent skin burns.</p></details>
+  <details><summary>Paddle placement</summary><p>In the standard position one paddle goes below the right collarbone beside the sternum and the other on the left side of the chest over the apex of the heart, so that the current passes through the heart muscle.</p></details>
+  <details><summary>Safety precautions</summary><p>Nobody should touch the patient or the bed during discharge, so the operator announces “clear” before pressing the buttons. Remove flammable materials and any oxygen flow near the chest, and never discharge the paddles in the air or against each other. After the shock, check the rhythm and the pulse.</p></details>
+  <details><summary>Manual defibrillators and AEDs</summary><p>A manual defibrillator lets a trained operator read the rhythm, choose the mode and set the energy. An automated external defibrillator (AED) analyses the rhythm itself and only advises a shock when it detects a shockable rhythm such as V-fib, which makes it suitable for the public. Defibrillation does not help in asystole (a flat line).</p></details>
+  <details><summary>Typical energy levels</summary><p>Monophasic devices commonly start at 200 to 360 J for V-fib. Biphasic devices achieve similar success at lower energy, often 120 to 200 J. Cardioversion for A-fib generally uses lower settings, starting around 100 J, which is the reasoning behind the thresholds in this simulator.</p></details>
+ </section>
+</div></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const S={def:0,sim:0,ecg:0,ch1:0,ch2:0,pads:0,rhythm:'normal',mode:'sync',energy:200,charged:0,charging:0,wave:'mono',hr:72,pending:0,blank:0,rows:[]};
+const NAMES={normal:'Normal',afib:'A-fib',vfib:'V-fib'};
+let t=0,bs=0,rr=60/72,rrs=[],head=0,prevS=0,lastUI=0,last=performance.now(),acc=0;
+const buf=new Float32Array(1000),sy=new Float32Array(1000);
+const g=(x,c,w)=>Math.exp(-((x-c)**2)/(2*w*w));
+const newRR=()=>S.rhythm==='normal'?60/S.hr:.4+Math.random()*.55;
+const live=()=>S.def&&S.sim&&S.ecg&&S.ch1;
+function msg(m,c){const e=$('msg');e.textContent=m;e.className=c||''}
+function reset(){bs=t;rr=newRR();rrs=[];S.pending=0}
+function hrNow(){if(S.rhythm==='vfib')return '--';if(S.rhythm==='normal')return S.hr;const a=rrs.length?rrs.reduce((x,y)=>x+y)/rrs.length:.55;return Math.round(60/a)}
+
+function step(dt){
+ t+=dt;let v=0,s=0;
+ if(S.rhythm==='vfib'){v=(.6+.4*Math.sin(t*1.3))*Math.sin(t*27+Math.sin(t*2.1)*3)+.3*Math.sin(t*44.6)}
+ else{
+  if(t>=bs+rr){bs+=rr;rr=newRR();rrs.push(rr);if(rrs.length>8)rrs.shift()}
+  const tb=t-bs;
+  v=(S.rhythm==='normal'?.12*g(tb,.12,.025):0)-.1*g(tb,.275,.008)+g(tb,.30,.011)-.2*g(tb,.325,.01)+.3*g(tb,.52,.05);
+  if(S.rhythm==='afib')v+=.05*Math.sin(t*56)+.04*Math.sin(t*83);
+  s=(tb>.29&&tb<.33)?1:0;
+ }
+ return [v+(Math.random()-.5)*.02,s];
+}
+
+function fire(){
+ const E=S.charged,eff=E*(S.wave==='bi'?1.3:1),rh=S.rhythm,before=hrNow();
+ let nr=rh,out,ok=false;
+ if(rh==='normal'){
+  if(S.mode==='manual'&&Math.random()<.5){nr='vfib';out='Unsynchronised shock induced V-fib'}
+  else{ok=true;out='Rhythm unchanged, shock not needed'}
+ }else if(rh==='afib'){
+  if(S.mode==='manual'&&Math.random()<.6){nr='vfib';out='Unsynchronised shock induced V-fib'}
+  else if(eff>=100){nr='normal';ok=true;out='Converted to normal rhythm'}
+  else out='Energy too low, A-fib persists'
+ }else{
+  const p=eff>=200?.95:eff>=120?.45:0;
+  if(Math.random()<p){nr='normal';ok=true;out='V-fib corrected to normal rhythm'}else out='No conversion, V-fib persists, raise energy'
+ }
+ S.charged=0;S.pending=0;S.blank=t+.9;S.rhythm=nr;
+ document.querySelector('[data-g=rhythm] .on').classList.remove('on');
+ document.querySelector('[data-g=rhythm] [data-v='+nr+']').classList.add('on');
+ reset();bs=S.blank;
+ const after=nr==='normal'?S.hr:(nr==='vfib'?'--':hrNow());
+ S.rows.push({rh,mode:S.mode,wave:S.wave,E,before,after,out,ok:nr==='normal'&&rh!=='normal'||(rh==='normal'&&ok)});
+ msg('Shock delivered: '+out+'.',ok?'ok':'bad');
+ const w=$('sw');w.classList.add('flash');setTimeout(()=>w.classList.remove('flash'),180);
+ drawPulse(E);renderRows();
+}
+
+function onR(){if(S.pending&&S.def&&S.pads){fire()}}
+
+function trace(x,a,base,k,col){x.strokeStyle=col;x.lineWidth=2;x.beginPath();let pen=0;
+ for(let i=0;i<1000;i++){const d=(i-head+1000)%1000;if(d<25){pen=0;continue}const y=base-a[i]*k;pen?x.lineTo(i,y):x.moveTo(i,y);pen=1}x.stroke()}
+function draw(){
+ const x=$('scope').getContext('2d');x.fillStyle='#04110b';x.fillRect(0,0,1000,360);
+ x.strokeStyle='rgba(61,255,138,.13)';x.lineWidth=1;x.beginPath();
+ for(let i=0;i<=1000;i+=50){x.moveTo(i,0);x.lineTo(i,360)}for(let j=0;j<=360;j+=45){x.moveTo(0,j);x.lineTo(1000,j)}x.stroke();
+ x.font='14px "JetBrains Mono",monospace';x.fillStyle='#3dff8a';x.fillText('CH1  ECG',12,22);
+ if(S.ch2){x.fillStyle='#ffd23d';x.fillText('CH2  SYNCH',12,214)}
+ if(!live()){x.fillStyle='#7aa88c';x.font='18px "Space Grotesk",sans-serif';x.fillText('NO SIGNAL: power on both units and connect the ECG leads',130,140);
+  x.strokeStyle='#3dff8a';x.beginPath();x.moveTo(0,130);x.lineTo(1000,130);x.stroke();return}
+ trace(x,buf,150,80,'#3dff8a');
+ if(S.ch2)trace(x,sy,320,-0+60,'#ffd23d');
+}
+function drawPulse(E){
+ const x=$('pulse').getContext('2d');x.fillStyle='#04110b';x.fillRect(0,0,400,110);
+ x.strokeStyle='#3dff8a44';x.beginPath();x.moveTo(0,55);x.lineTo(400,55);x.stroke();
+ if(!E)return;const A=45*Math.min(1,E/360+.25);x.strokeStyle='#ff6b77';x.lineWidth=2;x.beginPath();
+ for(let i=0;i<=360;i++){const u=i/360;let y;
+  if(S.wave==='mono')y=Math.sin(Math.PI*Math.min(1,u*1.6))*Math.exp(-2.2*u)*1.25;
+  else y=u<.5?Math.sin(Math.PI*u*2)*Math.exp(-1.2*u):-.6*Math.sin(Math.PI*(u-.5)*2)*Math.exp(-1.2*u);
+  const px=20+i,py=55-y*A;i?x.lineTo(px,py):x.moveTo(px,py)}x.stroke();
+ x.fillStyle='#7aa88c';x.font='12px "JetBrains Mono",monospace';x.fillText((S.wave==='bi'?'Biphasic':'Monophasic')+' · '+E+' J',22,104);
+}
+function renderRows(){
+ $('rows').innerHTML=S.rows.length?S.rows.map((r,i)=>`<tr><td>${i+1}</td><td>${NAMES[r.rh]}</td><td>${r.mode==='sync'?'Synch':'Manual'}</td><td>${r.wave==='bi'?'Biphasic':'Mono'}</td><td>${r.E}</td><td>${r.before}</td><td>${r.after}</td><td class="${r.ok?'ok':'bad'}">${r.out}</td></tr>`).join(''):'<tr><td colspan="8" style="color:var(--mute)">Each shock you deliver is logged here automatically.</td></tr>';
+ $('cnt').textContent='('+S.rows.length+' observation'+(S.rows.length==1?'':'s')+')';
+}
+const STEPS=[
+ ['Switch on the defibrillator',()=>S.def],
+ ['Switch on the ECG simulator',()=>S.sim],
+ ['Connect simulator output to the ECG input',()=>S.ecg],
+ ['Connect ECG output to DSO CH1',()=>S.ch1],
+ ['Connect SYNCH output to DSO CH2',()=>S.ch2],
+ ['Select Normal with Synch mode and see the pulse rise with the QRS',()=>live()&&S.ch2&&S.rhythm==='normal'&&S.mode==='sync'],
+ ['Connect the patient pads',()=>S.pads],
+ ['Select A-fib in Synch mode, charge and discharge until it converts',()=>S.rows.some(r=>r.rh==='afib'&&r.mode==='sync'&&r.ok)],
+ ['Select V-fib in Manual mode and repeat until it converts',()=>S.rows.some(r=>r.rh==='vfib'&&r.mode==='manual'&&r.ok)]];
+function ui(){
+ $('steps').innerHTML=STEPS.map(s=>`<li class="${s[1]()?'d':''}">${s[0]}</li>`).join('');
+ $('dHR').textContent=live()?hrNow():'--';$('dMode').textContent=S.mode==='sync'?'SYNCH':'MANUAL';
+ $('dEn').textContent=S.energy+' J';
+ $('dSt').textContent=!S.def?'OFF':S.charging?'CHARGING':S.pending?'ARMED':S.charged?'READY '+S.charged+'J':'STANDBY';
+}
+
+['def','sim','ecg','ch1','ch2','pads'].forEach(k=>$(k).onchange=e=>{S[k]=e.target.checked?1:0;if(k==='def'&&!S.def){S.charged=0;S.pending=0}});
+document.querySelectorAll('.seg').forEach(sg=>sg.onclick=e=>{const b=e.target.closest('button');if(!b)return;
+ sg.querySelector('.on').classList.remove('on');b.classList.add('on');S[sg.dataset.g]=b.dataset.v;
+ if(sg.dataset.g==='rhythm')reset();S.pending=0});
+$('hr').oninput=e=>{S.hr=+e.target.value;$('hrv').textContent=S.hr;if(S.rhythm==='normal')rr=60/S.hr};
+$('en').oninput=e=>{S.energy=+e.target.value;$('env').textContent=S.energy+' J';S.charged=0;S.pending=0};
+$('wave').onchange=e=>S.wave=e.target.value;
+$('clr').onclick=()=>{S.rows=[];renderRows()};
+$('chg').onclick=()=>{
+ if(!S.def)return msg('Switch the defibrillator on first.','w');if(S.charging)return;
+ S.charged=0;S.charging=1;msg('Charging to '+S.energy+' J...');
+ setTimeout(()=>{S.charging=0;S.charged=S.energy;msg('Charged to '+S.energy+' J. Ready to discharge.','ok')},1400)};
+$('shock').onclick=()=>{
+ if(!S.def)return msg('Switch the defibrillator on first.','w');
+ if(!S.charged)return msg('Charge the capacitor before discharging.','w');
+ if(!S.pads)return msg('Connect the patient pads to the simulator.','w');
+ if(!S.sim)return msg('Switch on the ECG simulator.','w');
+ if(S.mode==='sync'){
+  if(S.rhythm==='vfib')return msg('No QRS detected, so Synch mode inhibits the discharge. Switch to Manual mode for V-fib.','bad');
+  if(!live())return msg('No ECG input, so the defibrillator cannot lock onto an R-wave. Check the ECG connections.','w');
+  S.pending=1;msg('Armed. Waiting for the next R-wave...')
+ }else fire()};
+
+function loop(n){
+ acc+=Math.min((n-last)/1000,.1);last=n;
+ while(acc>=.004){acc-=.004;const [v,s]=step(.004),bl=t<S.blank;
+  buf[head]=live()&&!bl?v:0;sy[head]=live()&&S.ch2&&!bl?s:0;
+  if(!bl&&s&&!prevS)onR();prevS=s;head=(head+1)%1000}
+ draw();if(n-lastUI>200){lastUI=n;ui()}
+ requestAnimationFrame(loop)}
+(function(){
+ const svg=$('man'),els=[$('pd0'),$('pd1')],T=[{x:165,y:118},{x:262,y:198}],
+ P=[{x:62,y:270,rx:62,t:-1},{x:338,y:270,rx:338,t:-1}];let drag=-1,off=[0,0];
+ const draw1=i=>els[i].setAttribute('transform','translate('+P[i].x+','+P[i].y+')');
+ const pt=e=>{const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())};
+ function sync(){const n=P.filter(p=>p.t>=0).length,on=n===2;S.pads=on?1:0;$('pads').checked=on;
+  $('pbtn').textContent=on?'Lift paddles off chest':'Place paddles on chest';
+  $('pst').textContent=on?'Both paddles on chest. Pads connected.':n?'One paddle placed. Place the other.':'Paddles in holder';}
+ function rest(i){P[i].x=P[i].rx;P[i].y=270;P[i].t=-1;draw1(i)}
+ function snap(i,k){P[i].x=T[k].x;P[i].y=T[k].y;P[i].t=k;draw1(i)}
+ els.forEach((el,i)=>{
+  el.onpointerdown=e=>{drag=i;el.setPointerCapture(e.pointerId);const q=pt(e);off=[P[i].x-q.x,P[i].y-q.y];P[i].t=-1;sync();e.preventDefault()};
+  el.onpointermove=e=>{if(drag!==i)return;const q=pt(e);P[i].x=q.x+off[0];P[i].y=q.y+off[1];draw1(i)};
+  el.onpointerup=e=>{if(drag!==i)return;drag=-1;let best=-1,bd=48;
+   T.forEach((c,k)=>{const o=P[1-i].t===k,d=Math.hypot(P[i].x-c.x,P[i].y-c.y);if(!o&&d<bd){bd=d;best=k}});
+   best>=0?snap(i,best):rest(i);sync();
+   if(S.pads)msg('Paddles on chest. Pads connected, so you can charge and discharge.','ok')};
+ });
+ $('pbtn').onclick=()=>{if(S.pads){rest(0);rest(1)}else{snap(0,0);snap(1,1)}sync()};
+ $('pads').addEventListener('change',e=>{if(e.target.checked){snap(0,0);snap(1,1)}else{rest(0);rest(1)}sync()});
+ const _f=fire;fire=function(){_f();if(S.pads){svg.classList.add('hit');setTimeout(()=>svg.classList.remove('hit'),250)}};
+ draw1(0);draw1(1);sync();
+})();
+drawPulse(0);ui();requestAnimationFrame(loop);
+</script></body></html>
